@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/util 
+    http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<import resource="./logistics_rule.xml"></import>
+	<import resource="./flavor_rule.xml"></import>
+	<import resource="./brand_rule.xml"></import>
+	<import resource="./wom_rule.xml"></import>
+
+	<bean id="testRuleSet" class="com.zxinsight.classifier.ruleengine.RuleSet">
+		<property name="name">
+			<value>test_rule_set</value>
+		</property>
+		<property name="description">
+			<value>this is the test rule set</value>
+		</property>
+
+		<property name="rules">
+			<list>
+				<ref bean="brandRule"></ref>
+				<ref bean="flavorRule"></ref>
+				<ref bean="logisticsRule"></ref>
+				<ref bean="womRule"></ref>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="brandRule" class="com.zxinsight.classifier.ruleengine.rule.RegexRule">
+		<property name="expressions">
+			<list>
+				<value><![CDATA[正品|期待|希望|安全|放心|有保障|信得过|真货|真的|质疑|假的|可瑞佳|可瑞康|不知道真假|失望|担忧]]></value>
+				<value><![CDATA[原装|原罐|灌装]]></value>
+				<value><![CDATA[新西兰|中国|本土|澳洲|香港|荷兰|海外|代购|直邮|国内]]></value>
+			</list>
+		</property>
+		<property name="lable" value="品牌"></property>
+	</bean>
+
+	<bean id="flavorRule" class="com.zxinsight.classifier.ruleengine.rule.RegexRule">
+		<property name="expressions">
+			<list>
+				<value><![CDATA[不上火|溶解|易溶|速溶|好喝|耐饿|不易溶|结块|消化不好|硬块|不会溶解|挂壁|沉淀|颗粒|便秘|泡不开|(不.容易.)(泡开|溶解|化|冲开)|]]></value>
+				<value><![CDATA[疙瘩|比较难溶|上火|吐|拉肚子|绿色|便便]]></value>
+				<value><![CDATA[泡泡|起泡|泡沫|多]]></value>
+				<value><![CDATA[保真|新鲜|不新鲜|黄|潮湿|比较湿|很干燥|生产日期]]></value>
+			</list>
+		</property>
+		<property name="lable" value="口味"></property>
+	</bean>
+
+	<bean id="logisticsRule" class="com.zxinsight.classifier.ruleengine.rule.RegexRule">
+		<!-- <constructor-arg type="int" value="0" /> -->
+		<property name="expressions">
+			<list>
+				<value><![CDATA[(速度|到货)(快|给力|慢)]]></value>
+				<value><![CDATA[物流|快递|送货|发货]]></value>
+				<value><![CDATA[(运费|邮费)(便宜|包邮|贵|高|涨)]]></value>
+				<value><![CDATA[迅速|神速|及时|龟速|急|不送上门|扔传达室|不通知|额外收费|送错|代签|查不到记录]]></value>
+				<value><![CDATA[变型|压扁|爆罐|瘪|被压变形|洞|损坏|压坏|破损]]></value>
+			</list>
+		</property>
+		<property name="lable" value="物流"></property>
+	</bean>
+
+
+	<bean id="womRule" class="com.zxinsight.classifier.ruleengine.rule.RegexRule">
+		<property name="expressions">
+			<list>
+				<value><![CDATA[很好|非常好|好评|不错|给力|推荐|朋友介绍|信赖|支持|相信|选择这个|满意|爱喝|囤货|囤着|一直|一如.往|购买]]></value>
+				<value><![CDATA[回头客|优质|老客户|老顾客|正品|Good|good|GOOD|第.次|N次|n次|好几次|多次|可靠|赞|棒|依赖|好|一般|ok]]></value>
+				<value><![CDATA[Ok|OK|5分|五分|可以|好货|可以的|还行|hao|bucuo|keyi|HAO|Hao|nice|非常差]]></value>
+				<value><![CDATA[客服|店家|卖家|服务(态度)]]></value>
+			</list>
+		</property>
+		<property name="lable" value="口碑"></property>
+	</bean>
+
+</beans>

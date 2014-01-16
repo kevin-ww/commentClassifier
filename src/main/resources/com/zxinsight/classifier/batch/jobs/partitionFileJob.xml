@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- Partitioning Sample (partition) The purpose of this sample is to show 
+		multi-threaded step execution using the PartitionHandler SPI. The example 
+		uses a TaskExecutorPartitionHandler to spread the work of reading some files 
+		acrosss multiple threads, with one Step execution per thread. The key components 
+		are the PartitionStep and the MultiResourcePartitioner which is responsible 
+		for dividing up the work. Notice that the readers and writers in the Step 
+		that is being partitioned are step-scoped, so that their state does not get 
+		shared across threads of execution. -->
+
+	<bean id="jobLauncher"
+		class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+		<property name="jobRepository" ref="jobRepository" />
+		<property name="taskExecutor" ref="taskExecutor" />
+	</bean>
+
+	<bean id="jobRepository"
+		class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean" />
+
+	<bean id="transactionManager"
+		class="org.springframework.batch.support.transaction.ResourcelessTransactionManager" />
+
+
+	<job id="partitionJob" xmlns="http://www.springframework.org/schema/batch">
+		<step id="step">
+			<partition step="step1" partitioner="partitioner">
+				<handler grid-size="10" task-executor="asyncTaskExecutor" />
+			</partition>
+		</step>
+	</job>
+
+	<bean id="partitioner" class="MockMultiResourcePartitioner">
+		<property name="resources">
+			<list>
+				<value>"data/reviews/reviews-1.txt"</value>
+				<value>"data/reviews/reviews-2.txt"</value>
+			</list>
+		</property>
+	</bean>
+
+
+	<bean id="resourceUT" class="batch.ResourceUT">
+		<property name="template" value="data/reviews/reviews-1.txt" />
+		<property name="mTemplate" value="data/reviews/reviews-*.txt" />
+	</bean>
+
+
+
+	<bean id="taskExecutor" class="org.springframework.core.task.SyncTaskExecutor" />
+
+	<bean id="asyncTaskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
+
+	<step id="step1" xmlns="http://www.springframework.org/schema/batch">
+		<tasklet transaction-manager="transactionManager">
+			<chunk writer="itemWriter" reader="itemReader" processor="itemProcessor"
+				commit-interval="50" />
+			<listeners>
+				<listener ref="fileNameListener" />
+			</listeners>
+		</tasklet>
+	</step>
+
+	<bean id="fileNameListener" class="batch.OutputFileListener"
+		scope="step">
+		<property name="path" value="file:./target/output/file/" />
+	</bean>
+
+
+	<bean id="itemReader" scope="step" autowire-candidate="false"
+		parent="itemReaderParent">
+		<property name="resource" value="#{stepExecutionContext[fileName]}" />
+	</bean>
+
+	<bean id="itemReaderParent" class="batch.TestFlatFileItemReader"
+		abstract="true">
+		<property name="linesToSkip" value="1" />
+		<property name="lineMapper">
+			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+				<property name="lineTokenizer">
+					<bean
+						class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
+						<property name="delimiter" value="," />
+						<!-- <property name="names" value="name,credit" /> -->
+					</bean>
+				</property>
+				<!-- <property name="fieldSetMapper"> <bean class="org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper"> 
+					<property name="targetType" value="batch.CustomerCredit" /> </bean> </property> -->
+				<property name="fieldSetMapper">
+					<bean class="com.zxinsight.classifier.batch.ProductReviewFieldSetMapper" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<!-- <bean id="itemProcessor" class="batch.CustomerCreditIncreaseProcessor" 
+		/> -->
+
+	<bean id="itemProcessor" class="com.zxinsight.classifier.batch.ProductReviewProcessor" />
+
+
+	<bean id="itemWriter" class="org.springframework.batch.item.file.FlatFileItemWriter"
+		scope="step">
+		<property name="resource" value="#{stepExecutionContext[outputFile]}" />
+		<!-- <property name="lineAggregator"> <bean class="org.springframework.batch.item.file.transform.DelimitedLineAggregator"> 
+			<property name="delimiter" value="," /> <property name="fieldExtractor"> 
+			<bean class="org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor"> 
+			<property name="names" value="name,credit" /> </bean> </property> </bean> 
+			</property> -->
+		<property name="lineAggregator">
+			<bean class="com.zxinsight.classifier.batch.ProductReviewLineAggregator" />
+		</property>
+	</bean>
+
+</beans>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/util 
+    http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<bean id="testRuleSet01" class="com.zxinsight.classifier.ruleengine.RuleSet">
+		<constructor-arg name="name" value="test rule set" />
+		<constructor-arg name="description" value="rule set for test" />
+		<constructor-arg name="rules">
+			<list>
+				<ref bean="flavorRule" />
+				<ref bean="logisticsRule" />
+			</list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="flavorRule" class="com.zxinsight.classifier.ruleengine.rule.RegexRule">
+		<property name="expressions">
+			<list>
+<!-- 				<value><![CDATA[不上火|溶解|易溶|速溶|好喝|耐饿|不易溶|结块|消化不好|硬块|不会溶解|挂壁|沉淀|颗粒|便秘|泡不开|(不.容易.)(泡开|溶解|化|冲开)|]]></value>
+				<value><![CDATA[疙瘩|比较难溶|上火|吐|拉肚子|绿色|便便]]></value>
+				<value><![CDATA[泡泡|起泡|泡沫|多]]></value>
+				<value><![CDATA[保真|新鲜|不新鲜|黄|潮湿|比较湿|很干燥|生产日期]]></value> -->
+				<value><![CDATA[奶粉]]></value>
+			</list>
+		</property>
+		<property name="lable" value="口味"></property>
+	</bean>
+
+	<bean id="logisticsRule" class="com.zxinsight.classifier.ruleengine.rule.RegexRule">
+		<!-- <constructor-arg type="int" value="0" /> -->
+		<property name="expressions">
+			<list>
+<!-- 				<value><![CDATA[(速度|到货)(快|给力|慢)]]></value>
+				<value><![CDATA[物流|快递|送货|发货]]></value>
+				<value><![CDATA[(运费|邮费)(便宜|包邮|贵|高|涨)]]></value>
+				<value><![CDATA[迅速|神速|及时|龟速|急|不送上门|扔传达室|不通知|额外收费|送错|代签|查不到记录]]></value>
+				<value><![CDATA[变型|压扁|爆罐|瘪|被压变形|洞|损坏|压坏|破损]]></value> -->
+				<value><![CDATA[发货速度]]></value>
+			</list>
+		</property>
+		<property name="lable" value="物流"></property>
+	</bean>
+
+</beans>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+
+	<job id="simpleJob" job-repository="jobRepository"
+		xmlns="http://www.springframework.org/schema/batch">
+		<step id="step1">
+			<tasklet transaction-manager="transactionManager">
+				<chunk reader="itemReader" writer="itemWriter"
+					commit-interval="10" />
+			</tasklet>
+		</step>
+	</job>
+
+	<bean id="itemReader" scope="step"
+		class="org.springframework.batch.item.file.FlatFileItemReader">
+
+		<property name="linesToSkip" value="1" />
+		<property name="resource" value="#{jobParameters[input.file.name]}" />
+
+		<property name="lineMapper">
+			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+				<property name="lineTokenizer">
+					<bean
+						class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
+					</bean>
+				</property>
+				<property name="fieldSetMapper">
+					<bean class="com.zxinsight.classifier.batch.ProductReviewFieldSetMapper" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+
+
+	<bean id="itemWriter" class="org.springframework.batch.item.file.FlatFileItemWriter">
+		<property name="resource" value="file:target/test-outputs/output.txt" />
+		<property name="lineAggregator">
+			<bean
+				class="org.springframework.batch.item.file.transform.PassThroughLineAggregator" />
+		</property>
+	</bean>
+
+
+	<bean id="jobRepository"
+		class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean">
+		<property name="transactionManager" ref="transactionManager" />
+	</bean>
+
+	<bean id="transactionManager"
+		class="org.springframework.batch.support.transaction.ResourcelessTransactionManager" />
+
+	<bean id="jobLauncher"
+		class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+		<property name="jobRepository" ref="jobRepository" />
+		<property name="taskExecutor">
+			<bean class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
+		</property>
+	</bean>
+
+
+
+</beans>
